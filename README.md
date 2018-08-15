@@ -25,6 +25,21 @@ curl -XGET http://localhost:9200/_cluster/health?pretty=true
 curl -XGET http://localhost:9200
 ```
 
+## Logstash
+
+> run docker logstash
+
+
+``` bash
+docker pull docker.elastic.co/logstash/logstash:6.3.2
+
+docker run --rm -it -v ~/pipeline/:/usr/share/logstash/pipeline/ docker.elastic.co/logstash/logstash:6.3.2
+
+docker run --rm -it \
+  -v ~/settings/:/usr/share/logstash/config/ \ docker.elastic.co/logstash/logstash:6.3.2
+
+```
+
 ## 키바나 설치
 
 > run docker kibana
@@ -55,12 +70,26 @@ docker-compose --file kibana-compose.yml up -d
 http://localhost:5601
 ```
 
+## Beats
+
+``` bash
+docker run \
+  --mount type=bind,source="$(pwd)"/filebeat.yml,target=/usr/share/filebeat/filebeat.yml \
+  docker.elastic.co/beats/filebeat:6.3.2
+```
+
 ## 참조
 
-``` http
 http://jtoday.tistory.com/51
+
 http://brownbears.tistory.com/66
+
 https://hiseon.me/2018/02/19/install-docker/
+
 https://www.codementor.io/samueljames/using-docker-with-elasticsearch-logstash-and-kibana-elk-dzucc3c94
+
 http://elk-docker.readthedocs.io/#running-with-docker-compose
-```
+
+https://www.elastic.co/guide/en/beats/filebeat/current/running-on-docker.html
+
+https://medium.com/@bcoste/powerful-logging-with-docker-filebeat-and-elasticsearch-8ad021aecd87
