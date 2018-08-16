@@ -61,6 +61,7 @@ output {
 docker pull docker.elastic.co/logstash/logstash:6.3.2
 docker run --rm -it --name ls \
   -v ~/logstash:/config-dir \
+  -v ~/log:/var/log/logstash \
   logstash -f /config-dir/logstash.conf
 
 -- or --
