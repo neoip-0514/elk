@@ -27,17 +27,79 @@ curl -XGET http://localhost:9200
 
 ## Logstash
 
-> run docker logstash
+- vi logstash/logstash.yml
 
+``` yml
+pipeline:
+  batch:
+    size: 125
+    delay: 50
+```
+
+- vi logstash/logstash.conf
+
+``` javascript
+input {
+  stdin {}
+}
+filter {}
+output {
+  elasticsearch {
+    hosts => ["172.17.0.1:9200"]
+    index => "test1"
+    document_type => "doc"
+  }
+  stdout {
+    codec => rubydebug {}
+  }
+}
+```
+
+> run docker logstash
 
 ``` bash
 docker pull docker.elastic.co/logstash/logstash:6.3.2
+docker run --rm -it --name ls \
+  -v ~/logstash:/config-dir \
+  logstash -f /config-dir/logstash.conf
 
-docker run --rm -it -v ~/pipeline/:/usr/share/logstash/pipeline/ docker.elastic.co/logstash/logstash:6.3.2
+-- or --
+docker run --rm -it --name ls \
+  -v ~/logstash/:/usr/share/logstash/config/ \ docker.elastic.co/logstash/logstash:6.3.2
 
-docker run --rm -it \
-  -v ~/settings/:/usr/share/logstash/config/ \ docker.elastic.co/logstash/logstash:6.3.2
+-- or --
+docker pull docker.elastic.co/logstash/logstash:6.3.2
 
+docker run --rm -it --name ls \
+  -v ~/pipeline/:/usr/share/logstash/pipeline/ \
+  docker.elastic.co/logstash/logstash:6.3.2
+```
+
+## Beats
+
+- filebeat.yml
+
+``` yml
+filebeat.inputs:
+- type: log
+  enabled: true
+  paths:
+    - /var/log/app/*.log
+
+output.logstash:
+  hosts: ["127.0.0.1:5044"]
+```
+
+``` bash
+docker run \
+  -v ~/log:/var/log/app
+  -v ~/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml \
+  docker.elastic.co/beats/filebeat:6.3.2
+
+-- or --
+docker run \
+  --mount type=bind,source="$(pwd)"/filebeat.yml,target=/usr/share/filebeat/filebeat.yml \
+  docker.elastic.co/beats/filebeat:6.3.2
 ```
 
 ## 키바나 설치
@@ -70,15 +132,9 @@ docker-compose --file kibana-compose.yml up -d
 http://localhost:5601
 ```
 
-## Beats
-
-``` bash
-docker run \
-  --mount type=bind,source="$(pwd)"/filebeat.yml,target=/usr/share/filebeat/filebeat.yml \
-  docker.elastic.co/beats/filebeat:6.3.2
-```
-
 ## 참조
+
+http://brownbears.tistory.com/67
 
 http://jtoday.tistory.com/51
 
@@ -93,3 +149,6 @@ http://elk-docker.readthedocs.io/#running-with-docker-compose
 https://www.elastic.co/guide/en/beats/filebeat/current/running-on-docker.html
 
 https://medium.com/@bcoste/powerful-logging-with-docker-filebeat-and-elasticsearch-8ad021aecd87
+
+filebeat를 사용하여 logstash로 파일 수집하기
+http://yongho1037.tistory.com/709
